@@ -1,0 +1,69 @@
+{
+    "query": "How to start volunteering in environmental projects in Graz?",
+    "results": [
+        "Volunteer at community centre in Graz, Austria",
+        "Come help us in a beautiful spot in nature, close to the city ...",
+        "Work Exchange and Volunteer programs in Austria",
+        "",
+        "",
+        "Help building a small community space and work on ...",
+        "Volunteer at EggenLend Community Centre in Austria with ...",
+        "About us",
+        "Volunteer in Austria",
+        "Volunteering in Austria: A Unique Experience of Giving Back"
+    ],
+    "ads": [],
+    "cookies": [
+        {
+            "domain": "www.google.com",
+            "expiry": 1729650110,
+            "httpOnly": false,
+            "name": "DV",
+            "path": "/",
+            "sameSite": "Lax",
+            "secure": false,
+            "value": "Qwp3HED9kAUVQIF0XFQkBVj9iU1yKxk"
+        },
+        {
+            "domain": ".google.com",
+            "expiry": 1745460700,
+            "httpOnly": true,
+            "name": "NID",
+            "path": "/",
+            "sameSite": "Lax",
+            "secure": false,
+            "value": "518=LHbtMWMsIMat6F0AiD9zP7_BHP1bigElEx-IoUXSwz_TAAmvEOt-J8d5S9X9t2t1r3HdIvOjH-aHCbW6uKB9wQoCjZfN097zxU3BpXR-F2eycCGTalQ6Ib_djk8vAsWSz8W-yAbukmUpNR9ZRO_fQE7_B9oDt9T_uozA_hU4Hhz1fs6YRQdkZ6TasbZOZLgsoaOWciW9AIdMq9rPfuH5IlRZfTk"
+        },
+        {
+            "domain": ".google.com",
+            "expiry": 1732241491,
+            "httpOnly": false,
+            "name": "OGPC",
+            "path": "/",
+            "sameSite": "Lax",
+            "secure": false,
+            "value": "19037049-1:"
+        },
+        {
+            "domain": "www.google.com",
+            "expiry": 1729671115,
+            "httpOnly": false,
+            "name": "UULE",
+            "path": "/",
+            "sameSite": "Lax",
+            "secure": true,
+            "value": "a+cm9sZTogMQpwcm9kdWNlcjogMTIKdGltZXN0YW1wOiAxNzI5NjQ5NTEzMTMyMDAwCmxhdGxuZyB7CiAgbGF0aXR1ZGVfZTc6IDMwMjg3ODEyNQogIGxvbmdpdHVkZV9lNzogLTk3NzM5MTg4OQp9CnJhZGl1czogMTE0MjQuNzQKcHJvdmVuYW5jZTogNgo="
+        },
+        {
+            "domain": ".google.com",
+            "expiry": 1745201481,
+            "httpOnly": true,
+            "name": "AEC",
+            "path": "/",
+            "sameSite": "Lax",
+            "secure": true,
+            "value": "AVYB7cqE7fVGkmZHzVPcoITYp8Suc8mYqWlzZZ_Hy8FCHv326Ic9Rwoosvo"
+        }
+    ],
+    "timestamp": "2024-10-22 21:11:57"
+}
