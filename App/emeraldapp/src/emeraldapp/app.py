@@ -24,9 +24,8 @@ from .queries import QUERIES
 
 CURRENT_QUERIES = QUERIES
 
-# Define colors
-EMERALD_GREEN = rgb(46, 204, 113)  # Emerald green color
-WHITE = rgb(255, 255, 255)         # White for text
+EMERALD_GREEN = rgb(46, 204, 113)  # emerald color 
+WHITE = rgb(255, 255, 255)         # white
 
 class QueryInterface:
     def __init__(self):
@@ -47,21 +46,17 @@ class QueryInterface:
 
     def get_results(self):
         results = []
-        # Wait for results to load
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "div.g"))
         )
         
-        # Find all search result containers
         result_elements = self.driver.find_elements(By.CSS_SELECTOR, "div.g")
         
         for element in result_elements[:10]:
             try:
                 result_dict = {}
                 
-                # Get title and URL (they're in the same anchor tag)
                 try:
-                    # Try multiple possible selectors for the title/link element
                     link_selectors = [
                         "div.yuRUbf > a",
                         "div.rc > a",
@@ -83,7 +78,6 @@ class QueryInterface:
                     
                     if link_element:
                         result_dict['url'] = link_element.get_attribute("href")
-                        # Get title from the h3 within the link
                         title_element = link_element.find_element(By.CSS_SELECTOR, "h3")
                         result_dict['title'] = title_element.text
                 except Exception as e:
@@ -91,7 +85,6 @@ class QueryInterface:
                     result_dict['url'] = ""
                     result_dict['title'] = ""
 
-                # Get snippet
                 try:
                     snippet_selectors = [
                         "div.VwiC3b",
@@ -115,7 +108,6 @@ class QueryInterface:
                 except:
                     result_dict['snippet'] = ""
 
-                # Get displayed URL
                 try:
                     displayed_url_selectors = [
                         "div.TbwUpd > cite",
@@ -138,7 +130,6 @@ class QueryInterface:
                 except:
                     result_dict['displayed_url'] = ""
 
-                # Only append if we have at least a URL or title
                 if result_dict.get('url') or result_dict.get('title'):
                     results.append(result_dict)
                     
@@ -151,11 +142,8 @@ class QueryInterface:
     def get_ads(self):
         ads = []
         try:
-            # Top ads
             top_ads = self.driver.find_elements(By.CSS_SELECTOR, "div[aria-label='Ads']")
-            # Side ads
             side_ads = self.driver.find_elements(By.CSS_SELECTOR, "div.commercial-unit-desktop-rhs")
-            # Bottom ads
             bottom_ads = self.driver.find_elements(By.CSS_SELECTOR, "div[aria-label='Ads'] > div.uEierd")
             
             all_ad_containers = top_ads + side_ads + bottom_ads
@@ -164,35 +152,35 @@ class QueryInterface:
                 try:
                     ad_dict = {}
                     
-                    # Get ad title
+                    # ad title
                     try:
                         title_element = ad_container.find_element(By.CSS_SELECTOR, "div.CCgQ5")
                         ad_dict['title'] = title_element.text
                     except:
                         ad_dict['title'] = ""
                     
-                    # Get ad URL
+                    # ad URL
                     try:
                         url_element = ad_container.find_element(By.CSS_SELECTOR, "a")
                         ad_dict['url'] = url_element.get_attribute("href")
                     except:
                         ad_dict['url'] = ""
                     
-                    # Get ad description
+                    # ad description
                     try:
                         desc_element = ad_container.find_element(By.CSS_SELECTOR, "div.MUxGbd")
                         ad_dict['description'] = desc_element.text
                     except:
                         ad_dict['description'] = ""
                     
-                    # Get displayed URL
+                    # displayed URL
                     try:
                         displayed_url_element = ad_container.find_element(By.CSS_SELECTOR, "span.Zu0yb")
                         ad_dict['displayed_url'] = displayed_url_element.text
                     except:
                         ad_dict['displayed_url'] = ""
                     
-                    if any(ad_dict.values()):  # Only append if at least one field has data
+                    if any(ad_dict.values()):  # only append if one value found
                         ads.append(ad_dict)
                         
                 except Exception as e:
@@ -221,21 +209,21 @@ class SearchApp(toga.App):
     def startup(self):
         self.main_window = toga.MainWindow(title="Search Query App")
         
-        # Main container with background color
+        # main container with bg color 
         main_container = toga.Box(style=Pack(
             direction=COLUMN,
             padding=20,
             background_color=EMERALD_GREEN
         ))
         
-        # Style for labels with white text
+        # style white text 
         label_style = Pack(
             padding=(5, 10),
             color=WHITE,
             font_weight='bold'
         )
         
-        # Style for buttons
+        # button style 
         button_style = Pack(
             padding=(10, 20),
             background_color=WHITE,
@@ -243,7 +231,7 @@ class SearchApp(toga.App):
             font_weight='bold'
         )
         
-        # Create labels with white text
+        # labels w/ white text 
         self.path_label = toga.Label(
             f"Results Directory: {self.results_dir}",
             style=label_style
@@ -261,7 +249,7 @@ class SearchApp(toga.App):
             style=label_style
         )
         
-        # Create buttons with custom style
+        # button custom style 
         search_button = toga.Button(
             "Perform Search",
             on_press=self.handle_search,
@@ -274,7 +262,7 @@ class SearchApp(toga.App):
             style=button_style
         )
         
-        # Add all elements to the main container
+        # add elements to main container 
         main_container.add(self.progress_label)
         main_container.add(search_button)
         main_container.add(open_folder_button)
@@ -282,7 +270,7 @@ class SearchApp(toga.App):
         main_container.add(self.json_path_label)
         main_container.add(self.csv_path_label)
         
-        # Set the main container as the window content
+        # main container = window pop-up
         self.main_window.content = main_container
         self.main_window.show()
 
@@ -308,7 +296,7 @@ class SearchApp(toga.App):
             ads = interface.get_ads()
             cookies = interface.get_cookies()
             
-            # Save CSV with enhanced information
+            # csv and kson
             csv_path = os.path.join(self.results_dir, f'search_results_{timestamp}.csv')
             self.csv_path_label.text = f"CSV File: {csv_path}"
             
@@ -324,7 +312,6 @@ class SearchApp(toga.App):
                         result.get('snippet', '')
                     ])
             
-            # Save JSON with all information
             json_path = os.path.join(self.results_dir, f'full_results_{timestamp}.json')
             self.json_path_label.text = f"JSON File: {json_path}"
             
