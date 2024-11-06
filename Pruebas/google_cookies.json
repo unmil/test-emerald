@@ -1,0 +1,52 @@
+[
+    {
+        "domain": "www.google.com",
+        "expiry": 1728485230,
+        "httpOnly": false,
+        "name": "DV",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "w0uBAMJI1XwRwPhEXvq4VJHOIGMbJxk"
+    },
+    {
+        "domain": ".google.com",
+        "expiry": 1744295819,
+        "httpOnly": true,
+        "name": "NID",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "518=zQ84hXn-U5HHySCZM0buQwSzO51rFCSIRzMeBzZy0HmSosPMVTf-i464tbKzdTU3-sKYptGZry-RLz-B-xTMlgBwIh01adBBw19UGpNhMO1eFk6E5F8PzT4GzANJxM-W7fIElMCdpSl3PUDpuld0bPu8gJmvTbvmK9I_dsP8ftqfviwupVLqu7uTeUWhhtO6yLhU5sj8jiSNFu_khf_6bGBM708"
+    },
+    {
+        "domain": ".google.com",
+        "expiry": 1731076613,
+        "httpOnly": false,
+        "name": "OGPC",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "19037049-1:"
+    },
+    {
+        "domain": "www.google.com",
+        "expiry": 1728506234,
+        "httpOnly": false,
+        "name": "UULE",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": true,
+        "value": "a+cm9sZTogMQpwcm9kdWNlcjogMTIKdGltZXN0YW1wOiAxNzI4NDg0NjM0MzMwMDAwCmxhdGxuZyB7CiAgbGF0aXR1ZGVfZTc6IDMwMjg4MzUzOQogIGxvbmdpdHVkZV9lNzogLTk3NzM1NDM5OQp9CnJhZGl1czogNzkzOC40ODAwMDAwMDAwMDA1CnByb3ZlbmFuY2U6IDYK"
+    },
+    {
+        "domain": ".google.com",
+        "expiry": 1744036604,
+        "httpOnly": true,
+        "name": "AEC",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": true,
+        "value": "AVYB7cpvx4rcvWj-5dOa4Y6Tvi5_4jjV0-IpLX2RcLKNj6AJn1nEKM6dQQ0"
+    }
+]

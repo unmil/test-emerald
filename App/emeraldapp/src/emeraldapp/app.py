@@ -1,5 +1,5 @@
 """
-emerald app is gonna be a cool project.
+emerald app is going to be a cool project.
 """
 
 from pathlib import Path
@@ -139,58 +139,69 @@ class QueryInterface:
                 
         return results
 
-    def get_ads(self):
-        ads = []
-        try:
-            top_ads = self.driver.find_elements(By.CSS_SELECTOR, "div[aria-label='Ads']")
-            side_ads = self.driver.find_elements(By.CSS_SELECTOR, "div.commercial-unit-desktop-rhs")
-            bottom_ads = self.driver.find_elements(By.CSS_SELECTOR, "div[aria-label='Ads'] > div.uEierd")
-            
-            all_ad_containers = top_ads + side_ads + bottom_ads
-            
-            for ad_container in all_ad_containers:
-                try:
-                    ad_dict = {}
-                    
-                    # ad title
+def get_ads(self):
+    ads = []
+    try:
+        # First find the "Sponsored" section
+        sponsored_elements = self.driver.find_elements(By.CSS_SELECTOR, "span.dH53Z.U3A9Ac.qV8iec")
+        
+        for sponsored_element in sponsored_elements:
+            try:
+                # Find the parent container that holds all the product ads
+                parent_container = sponsored_element.find_element(By.XPATH, "./ancestor::div[contains(@class, 'commercial-unit-desktop-top')]")
+                
+                # Find all product items within this container
+                product_items = parent_container.find_elements(By.CSS_SELECTOR, "div[role='listitem']")
+                
+                for item in product_items:
                     try:
-                        title_element = ad_container.find_element(By.CSS_SELECTOR, "div.CCgQ5")
-                        ad_dict['title'] = title_element.text
-                    except:
-                        ad_dict['title'] = ""
-                    
-                    # ad URL
-                    try:
-                        url_element = ad_container.find_element(By.CSS_SELECTOR, "a")
-                        ad_dict['url'] = url_element.get_attribute("href")
-                    except:
-                        ad_dict['url'] = ""
-                    
-                    # ad description
-                    try:
-                        desc_element = ad_container.find_element(By.CSS_SELECTOR, "div.MUxGbd")
-                        ad_dict['description'] = desc_element.text
-                    except:
-                        ad_dict['description'] = ""
-                    
-                    # displayed URL
-                    try:
-                        displayed_url_element = ad_container.find_element(By.CSS_SELECTOR, "span.Zu0yb")
-                        ad_dict['displayed_url'] = displayed_url_element.text
-                    except:
-                        ad_dict['displayed_url'] = ""
-                    
-                    if any(ad_dict.values()):  # only append if one value found
-                        ads.append(ad_dict)
+                        ad_dict = {}
                         
-                except Exception as e:
-                    print(f"Error extracting ad: {str(e)}")
-                    continue
-                    
-        except Exception as e:
-            print(f"Error in get_ads: {str(e)}")
-            
-        return ads
+                        # Product title
+                        try:
+                            title_element = item.find_element(By.CSS_SELECTOR, "h3")
+                            ad_dict['title'] = title_element.text
+                        except:
+                            ad_dict['title'] = ""
+                        
+                        # Price
+                        try:
+                            price_element = item.find_element(By.CSS_SELECTOR, "[aria-label*='$']")
+                            ad_dict['price'] = price_element.text
+                        except:
+                            ad_dict['price'] = ""
+                        
+                        # Merchant/URL
+                        try:
+                            merchant_element = item.find_element(By.CSS_SELECTOR, "div[role='link']")
+                            ad_dict['merchant'] = merchant_element.text
+                            ad_dict['url'] = merchant_element.get_attribute("href")
+                        except:
+                            ad_dict['merchant'] = ""
+                            ad_dict['url'] = ""
+                        
+                        # Shipping info
+                        try:
+                            shipping_element = item.find_element(By.CSS_SELECTOR, "span.U3A9Ac")
+                            ad_dict['shipping'] = shipping_element.text
+                        except:
+                            ad_dict['shipping'] = ""
+                            
+                        if any(ad_dict.values()):
+                            ads.append(ad_dict)
+                            
+                    except Exception as e:
+                        print(f"Error extracting product item: {str(e)}")
+                        continue
+                        
+            except Exception as e:
+                print(f"Error processing sponsored section: {str(e)}")
+                continue
+                
+    except Exception as e:
+        print(f"Error in get_ads: {str(e)}")
+        
+    return ads
 
     def get_cookies(self):
         return self.driver.get_cookies()
