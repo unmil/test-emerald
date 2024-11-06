@@ -75,3 +75,4 @@ def process_single_query(query):
 if __name__ == "__main__":
     sample_query = "Tips for making friends through hobby groups in Graz?"
     process_single_query(sample_query)
+
