@@ -38,7 +38,6 @@ class QueryInterface:
         self.chrome_options.add_argument("--headless=new")
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
-        
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=self.chrome_options)
 
@@ -66,22 +65,93 @@ class QueryInterface:
             
             result_elements = self.driver.find_elements(By.CSS_SELECTOR, "div.g")
             
-            for element in result_elements[:10]:
+            for position, element in enumerate(result_elements[:10], 1):
                 try:
-                    result_dict = {}
-                    title_element = element.find_element(By.CSS_SELECTOR, "h3")
-                    link_element = element.find_element(By.CSS_SELECTOR, "a")
-                    result_dict['title'] = title_element.text
-                    result_dict['url'] = link_element.get_attribute("href")
+                    result_dict = {
+                        'position': position,
+                        'title': '',
+                        'url': '',
+                        'snippet': ''
+                    }
+                    
+                    # getting title and url 
+                    try:
+                        title_element = element.find_element(By.CSS_SELECTOR, "h3")
+                        link_element = element.find_element(By.CSS_SELECTOR, "a")
+                        result_dict['title'] = title_element.text
+                        result_dict['url'] = link_element.get_attribute("href")
+                    except Exception as e:
+                        print(f"Error getting title/url: {str(e)}")
+                    
+                    # snippet
+                    try:
+                        snippet_element = element.find_element(By.CSS_SELECTOR, "div.VwiC3b")
+                        result_dict['snippet'] = snippet_element.text
+                    except Exception as e:
+                        print(f"Error getting snippet: {str(e)}")
+                    
                     results.append(result_dict)
                 except Exception as e:
-                    print(f"Error processing result: {str(e)}")
+                    print(f"Error processing result {position}: {str(e)}")
                     continue
-                    
+            
             return results
         except Exception as e:
             print(f"Error in get_results: {str(e)}")
             return results
+
+    def get_ads(self):
+        ads = []
+        try:
+            # see if there are ads
+            ad_elements = self.driver.find_elements(By.CSS_SELECTOR, "div.uEierd")
+            
+            if not ad_elements:
+                print("No ads found")
+                return []
+            
+            for position, ad in enumerate(ad_elements, 1):
+                try:
+                    ad_dict = {
+                        'position': position,
+                        'title': '',
+                        'display_url': '',
+                        'actual_url': '',
+                        'description': ''
+                    }
+                    
+                    # title
+                    try:
+                        title_element = ad.find_element(By.CSS_SELECTOR, "div.CCgQ5 span")
+                        ad_dict['title'] = title_element.text
+                    except Exception as e:
+                        print(f"Error getting ad title: {str(e)}")
+                    
+                    # URLs
+                    try:
+                        url_element = ad.find_element(By.CSS_SELECTOR, "div.v5yQqb a")
+                        ad_dict['actual_url'] = url_element.get_attribute("href")
+                        ad_dict['display_url'] = url_element.text
+                    except Exception as e:
+                        print(f"Error getting ad URLs: {str(e)}")
+                    
+                    # Get description
+                    try:
+                        desc_element = ad.find_element(By.CSS_SELECTOR, "div.MUxGbd")
+                        ad_dict['description'] = desc_element.text
+                    except Exception as e:
+                        print(f"Error getting ad description: {str(e)}")
+                    
+                    ads.append(ad_dict)
+                    
+                except Exception as e:
+                    print(f"Error processing ad {position}: {str(e)}")
+                    continue
+            
+            return ads
+        except Exception as e:
+            print(f"Error in get_ads: {str(e)}")
+            return []
 
     def close(self):
         try:
@@ -112,9 +182,10 @@ def home():
                 }
                 .search-box { 
                     margin: 20px 0; 
+                    text-align: center;
                 }
                 button { 
-                    padding: 10px 20px; 
+                    padding: 15px 30px; 
                     background: #4CAF50; 
                     color: white; 
                     border: none; 
@@ -127,6 +198,7 @@ def home():
                 }
                 .results { 
                     margin-top: 20px; 
+                    padding: 15px;
                 }
                 .error {
                     color: red;
@@ -135,11 +207,26 @@ def home():
                     border-radius: 4px;
                     margin-top: 10px;
                 }
+                .success {
+                    background-color: #f9f9f9;
+                    padding: 15px;
+                    border-radius: 4px;
+                    margin-top: 15px;
+                }
+                .file-link {
+                    color: #4CAF50;
+                    text-decoration: none;
+                    margin: 5px 0;
+                    display: block;
+                }
+                .file-link:hover {
+                    text-decoration: underline;
+                }
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>Search Interface</h1>
+                <h1 style="text-align: center;">Search Interface</h1>
                 <div class="search-box">
                     <button onclick="performSearch()">Run Random Search</button>
                 </div>
@@ -148,7 +235,8 @@ def home():
 
             <script>
             function performSearch() {
-                document.getElementById('results').innerHTML = 'Searching...';
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '<div style="text-align: center;">Searching...</div>';
                 
                 fetch('/trigger-search', {
                     method: 'POST',
@@ -160,22 +248,39 @@ def home():
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        document.getElementById('results').innerHTML = `
-                            <div>
+                        let html = `
+                            <div class="success">
                                 <h3>Search completed!</h3>
-                                <p>Query: ${data.query}</p>
-                                <p>Results saved to Google Drive</p>
-                                <p>File ID: ${data.file_id}</p>
-                                ${data.file_link ? `<p><a href="${data.file_link}" target="_blank">View file</a></p>` : ''}
-                            </div>`;
+                                <p><strong>Query:</strong> ${data.query}</p>
+                                <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                                <p><strong>Ads found:</strong> ${data.had_ads ? 'Yes' : 'No'}</p>
+                                <h4>Uploaded files:</h4>
+                        `;
+                        
+                        data.files.forEach(file => {
+                            html += `
+                                <a href="${file.link}" target="_blank" class="file-link">
+                                    View ${file.type} file
+                                </a>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                        resultsDiv.innerHTML = html;
                     } else {
-                        document.getElementById('results').innerHTML = 
-                            `<div class="error">Error: ${data.error}</div>`;
+                        resultsDiv.innerHTML = `
+                            <div class="error">
+                                Error: ${data.error}
+                            </div>
+                        `;
                     }
                 })
                 .catch(error => {
-                    document.getElementById('results').innerHTML = 
-                        `<div class="error">Error: ${error}</div>`;
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            Error: ${error}
+                        </div>
+                    `;
                 });
             }
             </script>
@@ -183,69 +288,129 @@ def home():
         </html>
     """)
 
+def create_or_get_folder(drive_service, folder_name, parent_id=FOLDER_ID):
+    """Create a folder in Google Drive or get its ID if it exists."""
+    try:
+        # check folder
+        query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and '{parent_id}' in parents"
+        results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+        files = results.get('files', [])
+        
+        if files:
+            return files[0]['id']
+        
+        # create folder if it doesn't exist 
+        folder_metadata = {
+            'name': folder_name,
+            'mimeType': 'application/vnd.google-apps.folder',
+            'parents': [parent_id]
+        }
+        folder = drive_service.files().create(
+            body=folder_metadata,
+            fields='id'
+        ).execute()
+        return folder.get('id')
+        
+    except Exception as e:
+        print(f"Error creating/getting folder {folder_name}: {str(e)}")
+        raise
+
 @app.route('/trigger-search', methods=['POST'])
 def trigger_search():
     try:
-        # Select random query from list
         query = random.choice(QUERIES)
+        date = datetime.now().strftime('%Y-%m-%d')
+        timestamp = datetime.now().strftime('%H-%M-%S')
         
         interface = QueryInterface()
-        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        drive_service = get_google_drive_service()
         
-        try:
-            # search
+        try:            
             interface.perform_search(query)
             search_results = interface.get_results()
+            ads = interface.get_ads()
             
-            # temporary csv file 
-            csv_filename = f'search_results_{timestamp}.csv'
-            with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
+            query_folder_id = create_or_get_folder(drive_service, query.replace(" ", "_"))
+            date_folder_id = create_or_get_folder(drive_service, date, query_folder_id)
+            
+            uploaded_files = []
+            
+            # save and upload search results 
+            results_filename = f'results_{timestamp}.csv'
+            with open(results_filename, 'w', newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
-                writer.writerow(['Query', 'Title', 'URL'])
+                writer.writerow(['Timestamp', 'Position', 'Title', 'URL', 'Snippet'])
                 for result in search_results:
                     writer.writerow([
-                        query,
-                        result.get('title', ''),
-                        result.get('url', '')
+                        f"{date} {timestamp}",
+                        result['position'],
+                        result['title'],
+                        result['url'],
+                        result['snippet']
                     ])
             
-            # upload to drive
-            try:
-                drive_service = get_google_drive_service()
+            # upload results file
+            file_metadata = {
+                'name': results_filename,
+                'parents': [date_folder_id]
+            }
+            media = MediaFileUpload(results_filename, mimetype='text/csv', resumable=True)
+            results_file = drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id, webViewLink'
+            ).execute()
+            uploaded_files.append({
+                'type': 'results',
+                'id': results_file.get('id'),
+                'link': results_file.get('webViewLink')
+            })
+            
+            if ads:
+                ads_filename = f'ads_{timestamp}.csv'
+                with open(ads_filename, 'w', newline='', encoding='utf-8') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(['Timestamp', 'Position', 'Title', 'Display URL', 'Actual URL', 'Description'])
+                    for ad in ads:
+                        writer.writerow([
+                            f"{date} {timestamp}",
+                            ad['position'],
+                            ad['title'],
+                            ad['display_url'],
+                            ad['actual_url'],
+                            ad['description']
+                        ])
+                
                 file_metadata = {
-                    'name': csv_filename,
-                    'parents': [FOLDER_ID]
+                    'name': ads_filename,
+                    'parents': [date_folder_id]
                 }
-                
-                media = MediaFileUpload(
-                    csv_filename,
-                    mimetype='text/csv',
-                    resumable=True
-                )
-                
-                file = drive_service.files().create(
+                media = MediaFileUpload(ads_filename, mimetype='text/csv', resumable=True)
+                ads_file = drive_service.files().create(
                     body=file_metadata,
                     media_body=media,
                     fields='id, webViewLink'
                 ).execute()
-                
-                print(f"File uploaded to Drive with ID: {file.get('id')}")
-                
-                return jsonify({
-                    'success': True,
-                    'message': 'Search completed and saved to Google Drive',
-                    'file_id': file.get('id'),
-                    'file_link': file.get('webViewLink'),
-                    'query': query
+                uploaded_files.append({
+                    'type': 'ads',
+                    'id': ads_file.get('id'),
+                    'link': ads_file.get('webViewLink')
                 })
                 
-            except Exception as e:
-                print(f"Error uploading to Drive: {str(e)}")
-                raise
-                
-            finally:
-                if os.path.exists(csv_filename):
-                    os.remove(csv_filename)
+                if os.path.exists(ads_filename):
+                    os.remove(ads_filename)
+            
+            if os.path.exists(results_filename):
+                os.remove(results_filename)
+            
+            return jsonify({
+                'success': True,
+                'message': 'Search completed and saved',
+                'query': query,
+                'timestamp': f"{date} {timestamp}",
+                'files': uploaded_files,
+                'had_ads': bool(ads)
+            })
             
         finally:
             interface.close()
@@ -255,7 +420,7 @@ def trigger_search():
             'success': False,
             'error': str(e)
         })
-
+    
 if __name__ == '__main__':
     print("Starting server...")
     app.run(debug=True, host='0.0.0.0', port=3000)
