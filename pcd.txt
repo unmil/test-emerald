@@ -1,4 +1,0 @@
-- figure out ads
-- figure out android possibility 
-- figure out file system
-- downtime between queries (attempt 60 minute, 3 queries, random delay)
