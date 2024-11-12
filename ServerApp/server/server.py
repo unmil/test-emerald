@@ -17,10 +17,24 @@ import os
 import socket
 from datetime import datetime
 import random
+import logging
+
+class Config:
+    def __init__(self):
+        self.is_production = False  # change to true when deploying
+        self.server_url = "http://192.168.1.140:3000" if not self.is_production else "YOUR_PRODUCTION_URL"
+        self.folder_id = "1BebuFtSOBrJDUiElkMj0RSrb7kKPo3A8"
+
+config = Config()
+
+# save in case of adding email functionality 
+# EMAIL_ADDRESS = "pcarbajoderennes@gmail.com"  
+# EMAIL_PASSWORD = "app password"  
+# RECIPIENT_EMAIL = "pcarbajoderennes@gmail.com"
 
 app = Flask(__name__)
 
-FOLDER_ID = "1BebuFtSOBrJDUiElkMj0RSrb7kKPo3A8"
+FOLDER_ID = config.folder_id 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
 def get_google_drive_service():
@@ -38,7 +52,15 @@ class QueryInterface:
         self.chrome_options.add_argument("--headless=new")
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
-        service = Service(ChromeDriverManager().install())
+        
+        if config.is_production:
+            # prod settings 
+            self.chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+            service = Service(os.environ.get("CHROMEDRIVER_PATH"))
+        else:
+            # local dev settings 
+            service = Service(ChromeDriverManager().install())
+            
         self.driver = webdriver.Chrome(service=service, options=self.chrome_options)
 
     def perform_search(self, query):
@@ -168,99 +190,190 @@ def home():
             <title>Search Interface</title>
             <style>
                 body { 
-                    font-family: Arial, sans-serif; 
-                    margin: 40px; 
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    margin: 0;
+                    padding: 40px;
                     background-color: #f5f5f5;
+                    min-height: 100vh;
                 }
+                
                 .container { 
-                    max-width: 800px; 
-                    margin: 0 auto; 
+                    max-width: 800px;
+                    margin: 0 auto;
                     background-color: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    padding: 30px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 }
+                
+                h1 {
+                    text-align: center;
+                    color: #2c3e50;
+                    margin-bottom: 30px;
+                    font-weight: 600;
+                }
+                
                 .search-box { 
-                    margin: 20px 0; 
+                    margin: 30px 0;
                     text-align: center;
                 }
+                
                 button { 
-                    padding: 15px 30px; 
-                    background: #4CAF50; 
-                    color: white; 
-                    border: none; 
+                    padding: 15px 35px;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
                     cursor: pointer;
-                    border-radius: 4px;
+                    border-radius: 8px;
                     font-size: 16px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
                 }
+                
                 button:hover {
                     background: #45a049;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
                 }
+                
+                button:active {
+                    transform: translateY(0);
+                    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+                }
+                
+                button:disabled {
+                    background: #cccccc;
+                    cursor: not-allowed;
+                    transform: none;
+                    box-shadow: none;
+                }
+                
                 .results { 
-                    margin-top: 20px; 
+                    margin-top: 25px;
                     padding: 15px;
                 }
+                
                 .error {
-                    color: red;
-                    padding: 10px;
-                    border: 1px solid red;
-                    border-radius: 4px;
-                    margin-top: 10px;
-                }
-                .success {
-                    background-color: #f9f9f9;
+                    color: #e74c3c;
                     padding: 15px;
-                    border-radius: 4px;
+                    border: 1px solid #e74c3c;
+                    border-radius: 8px;
                     margin-top: 15px;
+                    background-color: #fdf3f2;
                 }
+                
+                .success {
+                    background-color: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin-top: 20px;
+                    border: 1px solid #e9ecef;
+                    animation: fadeIn 0.5s ease-out;
+                }
+                
+                .success h3 {
+                    color: #2c3e50;
+                    margin-top: 0;
+                    margin-bottom: 15px;
+                }
+                
+                .success p {
+                    margin: 10px 0;
+                    color: #34495e;
+                    line-height: 1.5;
+                }
+                
+                .success h4 {
+                    color: #2c3e50;
+                    margin: 20px 0 10px 0;
+                }
+                
                 .file-link {
                     color: #4CAF50;
                     text-decoration: none;
-                    margin: 5px 0;
-                    display: block;
+                    margin: 8px 0;
+                    display: inline-block;
+                    padding: 8px 15px;
+                    background-color: #f1f8f1;
+                    border-radius: 6px;
+                    transition: all 0.2s ease;
                 }
+                
                 .file-link:hover {
-                    text-decoration: underline;
+                    background-color: #e8f5e9;
+                    text-decoration: none;
+                    transform: translateX(5px);
+                }
+                
+                .loading {
+                    text-align: center;
+                    padding: 20px;
+                    color: #666;
+                    font-size: 16px;
+                }
+                
+                .loading::after {
+                    content: '';
+                    animation: dots 1.4s infinite;
+                }
+                
+                @keyframes dots {
+                    0%, 20% { content: '.'; }
+                    40% { content: '..'; }
+                    60% { content: '...'; }
+                    80%, 100% { content: ''; }
+                }
+                
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
             </style>
         </head>
         <body>
             <div class="container">
-                <h1 style="text-align: center;">Search Interface</h1>
+                <h1>Search Interface</h1>
                 <div class="search-box">
-                    <button onclick="performSearch()">Run Random Search</button>
+                    <button onclick="performSearch()" id="searchButton">Run Random Search</button>
                 </div>
                 <div id="results" class="results"></div>
             </div>
 
             <script>
-            function performSearch() {
+            async function performSearch() {
                 const resultsDiv = document.getElementById('results');
-                resultsDiv.innerHTML = '<div style="text-align: center;">Searching...</div>';
+                const searchButton = document.getElementById('searchButton');
                 
-                fetch('/trigger-search', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => response.json())
-                .then(data => {
+                try {
+                    // Disable button while searching
+                    searchButton.disabled = true;
+                    resultsDiv.innerHTML = '<div class="loading">Searching</div>';
+                    
+                    const response = await fetch('/trigger-search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({})
+                    });
+                    
+                    const data = await response.json();
+                    
                     if (data.success) {
                         let html = `
                             <div class="success">
-                                <h3>Search completed!</h3>
+                                <h3>🎉 Search completed!</h3>
                                 <p><strong>Query:</strong> ${data.query}</p>
                                 <p><strong>Timestamp:</strong> ${data.timestamp}</p>
-                                <p><strong>Ads found:</strong> ${data.had_ads ? 'Yes' : 'No'}</p>
-                                <h4>Uploaded files:</h4>
+                                <p><strong>Ads found:</strong> ${data.had_ads ? '✅ Yes' : '❌ No'}</p>
+                                <h4>📁 Uploaded files:</h4>
                         `;
                         
                         data.files.forEach(file => {
                             html += `
                                 <a href="${file.link}" target="_blank" class="file-link">
-                                    View ${file.type} file
+                                    ${file.type === 'results' ? '📊' : '🎯'} View ${file.type} file
                                 </a>
                             `;
                         });
@@ -270,18 +383,20 @@ def home():
                     } else {
                         resultsDiv.innerHTML = `
                             <div class="error">
-                                Error: ${data.error}
+                                ❌ Error: ${data.error}
                             </div>
                         `;
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     resultsDiv.innerHTML = `
                         <div class="error">
-                            Error: ${error}
+                            ❌ Error: ${error}
                         </div>
                     `;
-                });
+                } finally {
+                    // Re-enable button after search completes
+                    searchButton.disabled = false;
+                }
             }
             </script>
         </body>
@@ -420,7 +535,7 @@ def trigger_search():
             'success': False,
             'error': str(e)
         })
-    
+
 if __name__ == '__main__':
     print("Starting server...")
     app.run(debug=True, host='0.0.0.0', port=3000)
