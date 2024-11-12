@@ -18,6 +18,8 @@ import socket
 from datetime import datetime
 import random
 import logging
+from urllib.parse import quote
+import re
 
 class Config:
     def __init__(self):
@@ -403,20 +405,40 @@ def home():
         </html>
     """)
 
+def sanitize_folder_name(folder_name: str) -> str:
+    name = folder_name.replace("'", "-")
+    name = name.replace("?", "")    
+    name = re.sub(r'[\\/:*?"<>|]', '_', name)
+    name = re.sub(r'_+', '_', name)
+    name = name.strip('_')
+
+    if len(name) > 255:
+        name = name[:255]
+    
+    return name
+
 def create_or_get_folder(drive_service, folder_name, parent_id=FOLDER_ID):
-    """Create a folder in Google Drive or get its ID if it exists."""
     try:
-        # check folder
-        query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and '{parent_id}' in parents"
-        results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+        safe_folder_name = sanitize_folder_name(folder_name)
+        
+        escaped_name = safe_folder_name.replace("'", "\\'")
+        
+        query = f"name='{escaped_name}' and mimeType='application/vnd.google-apps.folder' and '{parent_id}' in parents"
+        
+        # try to find existing folder
+        results = drive_service.files().list(
+            q=query,
+            spaces='drive',
+            fields='files(id, name)'
+        ).execute()
         files = results.get('files', [])
         
         if files:
             return files[0]['id']
         
-        # create folder if it doesn't exist 
+        # create folder 
         folder_metadata = {
-            'name': folder_name,
+            'name': safe_folder_name,
             'mimeType': 'application/vnd.google-apps.folder',
             'parents': [parent_id]
         }
